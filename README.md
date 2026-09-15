@@ -1,136 +1,55 @@
 # Cryptography Lab - Big Integer Arithmetic & Extended Euclidean Algorithm
 
-[![GitHub Pages](https://img.shields.io/badge/Live_Demo-GitHub_Pages-2ea44f?style=for-the-badge&logo=github)](https://ujjwal092003.github.io/calci/)
-
-This repository contains the C++ implementation for the **Cryptography Lab (Lab 1)** focusing on arbitrary-precision arithmetic, Euclidean GCD, and the Extended Euclidean Algorithm.
+This project implements fundamental number-theoretic operations for **Cryptography Lab (Lab 1)**, handling large integers of **at least 512 bits** (~155 decimal digits) without external libraries.
 
 ---
 
-## 🌐 Live Web Demo
+## Project Structure
 
-You can test all operations (including 512-bit Extended Euclidean GCD and Bézout identity verification) directly in your web browser:
-
-👉 **[https://ujjwal092003.github.io/calci/](https://ujjwal092003.github.io/calci/)**
-
-*(Hosted via GitHub Pages from the `/docs` directory with 100% client-side arbitrary precision arithmetic)*
-
----
-
-## Overview
-
-In cryptographic algorithms (such as RSA and Diffie-Hellman), numbers often exceed the capacity of standard 32-bit and 64-bit primitive integer types. This project implements arbitrary-precision decimal arithmetic from first principles using standard C++ (`std::string`), without relying on external libraries such as Boost or GMP.
-
-The code supports integers of **at least 512 bits** (~155 decimal digits).
-
----
-
-## Implemented Operations
-
-1. **Addition (`+`)**: Column-by-column addition with carry propagation.
-2. **Subtraction (`-`)**: Column-by-column subtraction with borrow handling ($a \ge b$ for unsigned, full support for signed results).
-3. **Multiplication (`*`)**: Grade-school multiplication with positional cross-products.
-4. **Division (`/`) & Modulo (`%`)**: Long division producing both quotient and remainder.
-5. **Euclidean GCD**: Classical Euclidean algorithm computing $\gcd(a, b) = \gcd(b, a \pmod b)$ until remainder is 0.
-6. **Extended Euclidean GCD**: Iterative Extended Euclidean Algorithm computing $\gcd(a, b)$ and Bézout coefficients $x, y \in \mathbb{Z}$ such that:
-   $$a \cdot x + b \cdot y = \gcd(a, b)$$
-   Supports negative values for $x$ and $y$.
-7. **Bézout Identity Verification**: Computes $a \cdot x + b \cdot y$ and automatically verifies equality with $\gcd(a, b)$ (`PASS` / `FAIL`).
-8. **512-bit Number Generation**: Generates random numbers $\ge 2^{511}$ (~155 decimal digits) using bitwise double-and-add.
-
----
-
-## Repository Structure
+The project consists of two clean, self-contained files:
 
 ```text
 calci/
-├── docs/
-│   └── index.html    # Standalone web calculator for GitHub Pages live demo
-├── src/
-│   └── main.cpp      # Portable C++ source code for Linux lab evaluation
-├── README.md         # Project documentation and lab guide
-└── .gitignore        # Standard Git ignore rules
+├── crypto.cpp    # Complete standalone C++ program (algorithms + interactive menu)
+└── index.html    # Standalone calculator UI (runs directly in any browser)
 ```
 
 ---
 
-## Compilation & Execution (Linux / Unix / macOS / Windows)
+## 1. C++ Implementation (`crypto.cpp`)
 
-### Prerequisites
-- A standard C++ compiler (`g++` supporting C++17 or C++11).
-- No external libraries required (only standard C++ library headers).
+Contains the complete C++ implementation using standard `std::string` arithmetic:
 
-### 1. Compilation
-From the project root directory:
+1. **Addition (`+`)**: Column-by-column addition with carry propagation.
+2. **Subtraction (`-`)**: Column-by-column subtraction with borrow handling.
+3. **Multiplication (`*`)**: Grade-school multiplication with cross-products.
+4. **Division (`/`) & Modulo (`%`)**: Long division producing quotient and remainder.
+5. **Euclidean GCD**: Computes $\gcd(a, b) = \gcd(b, a \pmod b)$ until remainder is 0.
+6. **Extended Euclidean GCD**: Computes $\gcd(a, b)$ and Bézout coefficients $x, y \in \mathbb{Z}$ such that:
+   $$a \cdot x + b \cdot y = \gcd(a, b)$$
+   Supports negative values for $x$ and $y$.
+7. **Bézout Identity Verification**: Evaluates $a \cdot x + b \cdot y == \gcd(a, b)$ and reports `PASS` or `FAIL`.
+8. **512-bit Random Number Generator**: Generates random numbers $\ge 2^{511}$ (~155 digits) in milliseconds using bitwise double-and-add.
 
-```bash
-g++ -std=c++17 src/main.cpp -o crypto_lab
-```
-
-### 2. Running Interactive Menu
-Run the compiled binary without arguments to access the interactive calculator menu:
-
-```bash
-./crypto_lab
-```
-
-#### Menu Preview:
-```text
-=========================================
-      CRYPTOGRAPHY LAB - CALCULATOR
-=========================================
- 1. Addition (+)
- 2. Subtraction (-)
- 3. Multiplication (*)
- 4. Division (/)
- 5. Euclidean GCD
- 6. Extended Euclidean GCD
- 7. Generate 512-bit Number
- 8. Exit
-=========================================
-Enter your choice (1-8):
-```
-
-### 3. Running via Command-Line (CLI Mode)
-You can also run specific operations directly via terminal arguments:
+### How to Compile & Run on Linux / Unix / macOS / Windows
 
 ```bash
-# Addition
-./crypto_lab add 45 55
+# 1. Compile
+g++ -std=c++17 crypto.cpp -o crypto
 
-# Subtraction
-./crypto_lab sub 100 37
+# 2. Run Interactive Menu
+./crypto
 
-# Multiplication
-./crypto_lab mul 123456789 987654321
-
-# Division (prints quotient and remainder)
-./crypto_lab div 1000 7
-
-# Euclidean GCD
-./crypto_lab gcd 48 18
-
-# Extended Euclidean GCD (prints gcd, x, y, and Bézout verification)
-./crypto_lab extgcd 30 12
-
-# Generate a random 512-bit decimal number
-./crypto_lab rand512
+# 3. (Optional) Run Direct CLI Command
+./crypto extgcd 30 12
+./crypto rand512
 ```
 
 ---
 
-## Example Output (Extended Euclidean Algorithm)
+## 2. Web Calculator (`index.html`)
 
-```text
-Enter First Number:  30
-Enter Second Number: 12
-
------------------------------------------
-GCD: 6
-x:   1
-y:   -2
-Bézout Identity: a*x + b*y = gcd(a,b)
-Verification:    PASS
------------------------------------------
-```
-
-Check: $30(1) + 12(-2) = 30 - 24 = 6 = \gcd(30, 12)$.
+A single, self-contained web file containing HTML, CSS, and JavaScript in one file.
+- **No server required**: Double-click `index.html` to open it in any web browser.
+- **Identical logic**: Implements the same string-based big integer arithmetic directly in client-side JavaScript.
+- **Live Demo**: [https://ujjwal092003.github.io/calci/](https://ujjwal092003.github.io/calci/)

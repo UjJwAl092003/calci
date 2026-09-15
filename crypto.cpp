@@ -9,8 +9,8 @@
 // ============================================================================
 // Cryptography Lab - Large Integer Arithmetic, Euclidean GCD & Extended GCD
 //
-// All calculations are implemented directly using std::string (decimal digits).
-// Arbitrary precision is supported without external big-integer libraries.
+// All operations are implemented directly on std::string (decimal digits).
+// Arbitrary-precision (>= 512 bits) without external libraries (No Boost, No GMP).
 // ============================================================================
 
 // Remove leading zeros from a decimal string (e.g., "007" -> "7", "000" -> "0")
@@ -165,7 +165,7 @@ std::string modulo(const std::string& a, const std::string& b) {
 }
 
 // ============================================================================
-// SIGNED BIG-INTEGER HELPERS (Needed because x and y can be negative)
+// SIGNED BIG-INTEGER HELPERS (Needed because Bezout x and y can be negative)
 // ============================================================================
 
 bool isNegative(const std::string& s) {
@@ -242,7 +242,7 @@ std::string gcd(std::string a, std::string b) {
 // Extended Euclidean Algorithm:
 // Finds gcd(a, b) and integers x, y such that:
 // a * x + b * y = gcd(a, b)
-// Iterative implementation keeps track of Bezout coefficients without recursion:
+// Iterative state tracking:
 // r_0 = a, r_1 = b
 // s_0 = 1, s_1 = 0
 // t_0 = 0, t_1 = 1
@@ -330,7 +330,7 @@ void printMenu() {
 
 int main(int argc, char* argv[]) {
     // ------------------------------------------------------------------------
-    // CLI Mode: Supports command-line execution and automated evaluation
+    // CLI Mode: Direct evaluation via command-line arguments
     // ------------------------------------------------------------------------
     if (argc > 1) {
         std::string cmd = argv[1];
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
     }
 
     // ------------------------------------------------------------------------
-    // Interactive Terminal Mode: Standard menu for lab viva and execution
+    // Interactive Terminal Mode: Standard menu for lab viva and evaluation
     // ------------------------------------------------------------------------
     int choice = 0;
     while (true) {
