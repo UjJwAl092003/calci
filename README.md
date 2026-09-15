@@ -1,6 +1,18 @@
 # Cryptography Lab - Big Integer Arithmetic & Extended Euclidean Algorithm
 
+[![GitHub Pages](https://img.shields.io/badge/Live_Demo-GitHub_Pages-2ea44f?style=for-the-badge&logo=github)](https://ujjwal092003.github.io/calci/)
+
 This repository contains the C++ implementation for the **Cryptography Lab (Lab 1)** focusing on arbitrary-precision arithmetic, Euclidean GCD, and the Extended Euclidean Algorithm.
+
+---
+
+## 🌐 Live Web Demo
+
+You can test all operations (including 512-bit Extended Euclidean GCD and Bézout identity verification) directly in your web browser:
+
+👉 **[https://ujjwal092003.github.io/calci/](https://ujjwal092003.github.io/calci/)**
+
+*(Hosted via GitHub Pages from the `/docs` directory with 100% client-side arbitrary precision arithmetic)*
 
 ---
 
@@ -31,8 +43,10 @@ The code supports integers of **at least 512 bits** (~155 decimal digits).
 
 ```text
 calci/
+├── docs/
+│   └── index.html    # Standalone web calculator for GitHub Pages live demo
 ├── src/
-│   └── main.cpp      # Complete portable C++ source code
+│   └── main.cpp      # Portable C++ source code for Linux lab evaluation
 ├── README.md         # Project documentation and lab guide
 └── .gitignore        # Standard Git ignore rules
 ```
