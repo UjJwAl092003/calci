@@ -1,0 +1,35 @@
+# Compiled Binaries & Executables
+*.exe
+*.out
+*.app
+crypto_lab
+custom_big_integer.exe
+
+# Object files & Libraries
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache & temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / Log files
+*.log
+*.tmp
+
+# Local optional web UI and scripts (kept local, repository contains pure C++ lab)
+frontend/
+server.py
+run.bat
+custom_big_integer.cpp
