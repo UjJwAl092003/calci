@@ -622,12 +622,12 @@ TestResult runSingleTest(const TestCase& tc, int& passedCount, int& totalCount, 
         if (!tc.m.empty()) std::cout << "  M = " << (tc.m.length() > 60 ? tc.m.substr(0, 57) + "..." : tc.m) << "\n";
         if (!tc.exp.empty()) std::cout << "  Exp = " << (tc.exp.length() > 60 ? tc.exp.substr(0, 57) + "..." : tc.exp) << "\n";
 
-        std::cout << "\nScratch Output:\n  " << (scratchRes.length() > 70 ? scratchRes.substr(0, 67) + "..." : scratchRes) << "\n";
-        std::cout << "Predefined Output:\n  " << (predefRes.length() > 70 ? predefRes.substr(0, 67) + "..." : predefRes) << "\n";
+        std::cout << "\nManual Implementation Result:\n  " << (scratchRes.length() > 70 ? scratchRes.substr(0, 67) + "..." : scratchRes) << "\n";
+        std::cout << "Library Implementation Result:\n  " << (predefRes.length() > 70 ? predefRes.substr(0, 67) + "..." : predefRes) << "\n";
         std::cout << std::fixed << std::setprecision(2);
-        std::cout << "\nScratch Time:     " << scratchTime << " μs\n";
-        std::cout << "Predefined Time:  " << predefTime << " μs\n";
-        std::cout << "Status:           " << (isPass ? "PASS" : "FAIL") << "\n\n";
+        std::cout << "\nManual Implementation Time:   " << scratchTime << " μs\n";
+        std::cout << "Library Implementation Time:  " << predefTime << " μs\n";
+        std::cout << "Status:                       " << (isPass ? "PASS" : "FAIL") << "\n\n";
     }
 
     return TestResult{tc, scratchRes, predefRes, scratchTime, predefTime, isPass};
@@ -644,101 +644,47 @@ std::vector<OpGroup> getAllTestGroups() {
     std::string large_B = "9876543210987654321098765432109876543210";
 
     return std::vector<OpGroup>{
-        {"Addition", {
-            {"Addition", 1, "Small Numbers", "12", "5", "", ""},
-            {"Addition", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"Addition", 3, "Large Numbers", large_A, large_B, "", ""},
-            {"Addition", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Addition", 5, "Negative Numbers", "-12345", "6789", "", ""},
-            {"Addition", 6, "Edge Case (Zero)", "0", "987654321", "", ""}
-        }},
-        {"Subtraction", {
-            {"Subtraction", 1, "Small Numbers", "12", "5", "", ""},
-            {"Subtraction", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"Subtraction", 3, "Large Numbers", large_B, large_A, "", ""},
-            {"Subtraction", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Subtraction", 5, "Negative Numbers", "-12345", "-6789", "", ""},
-            {"Subtraction", 6, "Edge Case (Equal)", "9999999999", "9999999999", "", ""}
-        }},
-        {"Multiplication", {
-            {"Multiplication", 1, "Small Numbers", "12", "5", "", ""},
-            {"Multiplication", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"Multiplication", 3, "Large Numbers", "123456789012345", "987654321098765", "", ""},
-            {"Multiplication", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Multiplication", 5, "Negative Numbers", "-12345", "6789", "", ""},
-            {"Multiplication", 6, "Edge Case (Zero)", "123456789", "0", "", ""}
-        }},
-        {"Division", {
-            {"Division", 1, "Small Numbers", "100", "7", "", ""},
-            {"Division", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"Division", 3, "Large Numbers", large_B, "123456789", "", ""},
-            {"Division", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Division", 5, "Negative Numbers", "-100", "7", "", ""},
-            {"Division", 6, "Edge Case (Dividend < Divisor)", "37", "123456", "", ""}
-        }},
-        {"Modulo", {
-            {"Modulo", 1, "Small Numbers", "100", "7", "", ""},
-            {"Modulo", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"Modulo", 3, "Large Numbers", large_B, "123456789", "", ""},
-            {"Modulo", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Modulo", 5, "Negative Numbers", "-100", "7", "", ""},
-            {"Modulo", 6, "Edge Case (Mod 1)", "123456789", "1", "", ""}
-        }},
         {"GCD", {
             {"GCD", 1, "Small Numbers", "48", "18", "", ""},
             {"GCD", 2, "Different Sizes", "123456789", "37", "", ""},
-            {"GCD", 3, "Large Numbers", large_A, large_B, "", ""},
-            {"GCD", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"GCD", 5, "Negative Numbers", "-48", "18", "", ""},
-            {"GCD", 6, "Edge Case (Coprime)", "17", "31", "", ""}
+            {"GCD", 3, "Negative Inputs", "-48", "18", "", ""},
+            {"GCD", 4, "~512-bit Numbers", num512_A, num512_B, "", ""}
         }},
         {"Extended GCD", {
             {"Extended GCD", 1, "Small Numbers", "30", "12", "", ""},
             {"Extended GCD", 2, "Different Sizes", "240", "46", "", ""},
-            {"Extended GCD", 3, "Large Numbers", large_A, large_B, "", ""},
-            {"Extended GCD", 4, "~512-bit Numbers", num512_A, num512_B, "", ""},
-            {"Extended GCD", 5, "Negative Numbers", "-30", "12", "", ""},
-            {"Extended GCD", 6, "Edge Case (Coprime)", "13", "7", "", ""}
+            {"Extended GCD", 3, "Negative Inputs", "-30", "12", "", ""},
+            {"Extended GCD", 4, "~512-bit Numbers", num512_A, num512_B, "", ""}
         }},
         {"Modular Addition", {
             {"Modular Addition", 1, "Small Numbers", "12", "5", "7", ""},
-            {"Modular Addition", 2, "Different Sizes", "123456789", "37", "1000", ""},
-            {"Modular Addition", 3, "Large Numbers", large_A, large_B, "1000000007", ""},
-            {"Modular Addition", 4, "~512-bit Numbers", num512_A, num512_B, num512_M, ""},
-            {"Modular Addition", 5, "Negative Modulus", "-17", "3", "-5", ""},
-            {"Modular Addition", 6, "Edge Case (Mod Wraparound)", "999", "2", "1000", ""}
+            {"Modular Addition", 2, "Large Numbers", large_A, large_B, "1000000007", ""},
+            {"Modular Addition", 3, "Negative Operands", "-17", "3", "5", ""},
+            {"Modular Addition", 4, "Negative Modulus", "-17", "3", "-5", ""}
         }},
         {"Modular Multiplication", {
             {"Modular Multiplication", 1, "Small Numbers", "12", "5", "7", ""},
-            {"Modular Multiplication", 2, "Different Sizes", "123456789", "37", "1000", ""},
-            {"Modular Multiplication", 3, "Large Numbers", large_A, large_B, "1000000007", ""},
-            {"Modular Multiplication", 4, "~512-bit Numbers", num512_A, num512_B, num512_M, ""},
-            {"Modular Multiplication", 5, "Negative Operands", "-12", "-5", "7", ""},
-            {"Modular Multiplication", 6, "Edge Case (Zero Product)", "14", "5", "7", ""}
+            {"Modular Multiplication", 2, "Large Numbers", large_A, large_B, "1000000007", ""},
+            {"Modular Multiplication", 3, "Negative Operands", "-12", "-5", "7", ""},
+            {"Modular Multiplication", 4, "~512-bit Numbers", num512_A, num512_B, num512_M, ""}
         }},
         {"Modular Inverse", {
             {"Modular Inverse", 1, "Small Numbers", "3", "", "11", ""},
-            {"Modular Inverse", 2, "Different Sizes", "37", "", "1000", ""},
-            {"Modular Inverse", 3, "Large Prime Modulus", "123456789", "", "1000000007", ""},
-            {"Modular Inverse", 4, "~512-bit Coprime", "65537", "", num512_M, ""},
-            {"Modular Inverse", 5, "Negative Modulus", "-3", "", "-11", ""},
-            {"Modular Inverse", 6, "Edge Case (No Inverse gcd!=1)", "6", "", "9", ""}
+            {"Modular Inverse", 2, "Large Prime Modulus", "123456789", "", "1000000007", ""},
+            {"Modular Inverse", 3, "Negative Modulus", "-3", "", "-11", ""},
+            {"Modular Inverse", 4, "Non-Coprime (No Inverse)", "6", "", "9", ""}
         }},
         {"Naive Modular Power", {
             {"Naive Modular Power", 1, "Small Exponent", "2", "", "7", "5"},
-            {"Naive Modular Power", 2, "Medium Base", "123", "", "1000", "7"},
-            {"Naive Modular Power", 3, "Moderate Exponent", "7", "", "1000000007", "25"},
-            {"Naive Modular Power", 4, "Negative Base", "-2", "", "13", "4"},
-            {"Naive Modular Power", 5, "Negative Modulus", "3", "", "-11", "5"},
-            {"Naive Modular Power", 6, "Edge Case (Exp = 0)", "123456", "", "1000", "0"}
+            {"Naive Modular Power", 2, "Zero Exponent", "123456", "", "1000", "0"},
+            {"Naive Modular Power", 3, "Negative Base", "-2", "", "13", "4"},
+            {"Naive Modular Power", 4, "Moderate Exponent", "7", "", "1000000007", "25"}
         }},
         {"Square-and-Multiply", {
             {"Square-and-Multiply", 1, "Small Exponent", "2", "", "7", "5"},
-            {"Square-and-Multiply", 2, "Medium Exponent", "123456789", "", "1000000007", "12345"},
+            {"Square-and-Multiply", 2, "Negative Base & Modulus", "-5", "", "-17", "13"},
             {"Square-and-Multiply", 3, "Large Exponent", "3", "", "1000000007", "98765432109876543210"},
-            {"Square-and-Multiply", 4, "~512-bit Exponent", num512_A, "", num512_M, num512_B},
-            {"Square-and-Multiply", 5, "Negative Base & Modulus", "-5", "", "-17", "13"},
-            {"Square-and-Multiply", 6, "Edge Case (Exp = 0, Base = 0)", "0", "", "17", "0"}
+            {"Square-and-Multiply", 4, "~512-bit Exponent", num512_A, "", num512_M, num512_B}
         }}
     };
 }

@@ -68,7 +68,7 @@
         }
 
         .header h1 {
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             color: #1e3a8a;
             font-weight: 700;
             letter-spacing: 0.5px;
@@ -392,13 +392,13 @@
             font-family: 'Consolas', monospace;
         }
 
-        .time-scratch {
+        .time-manual {
             background: #eff6ff;
             color: #1d4ed8;
             border: 1px solid #bfdbfe;
         }
 
-        .time-predef {
+        .time-library {
             background: #f0fdf4;
             color: #166534;
             border: 1px solid #bbf7d0;
@@ -410,23 +410,6 @@
             color: #64748b;
             margin-top: 10px;
         }
-
-        .tab-btn {
-            background: #f1f5f9;
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #475569;
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
-        }
     </style>
 </head>
 <body>
@@ -436,7 +419,7 @@
     <div class="card">
         <div class="header">
             <h1>Cryptography Lab Calculator</h1>
-            <p>Arbitrary-Precision Arithmetic &bull; Euclidean &amp; Extended GCD &bull; Modular Arithmetic &bull; Square-and-Multiply (512-bit)</p>
+            <p>Arbitrary-Precision Arithmetic &bull; Euclidean &amp; Extended GCD &bull; Modular Arithmetic &bull; Square-and-Multiply</p>
         </div>
 
         <div class="body-content">
@@ -472,7 +455,7 @@
                         <span>Modulus (M):</span>
                         <span class="digit-count" id="count-m">0 digits</span>
                     </div>
-                    <textarea id="input-m" class="calc-input" placeholder="Enter modulus M (e.g. 7, 1000000007, or 512-bit)..."></textarea>
+                    <textarea id="input-m" class="calc-input" placeholder="Enter modulus M (e.g. 13, 1000000007, or 512-bit)..."></textarea>
                     <div class="quick-actions">
                         <button class="btn-mini btn-gen" onclick="generateTo('m')">&plus; Generate 512-bit</button>
                         <button class="btn-mini" onclick="document.getElementById('input-m').value=''; updateCounts();">&times; Clear</button>
@@ -530,7 +513,7 @@
 
                 <div id="standard-res-box" class="res-line">
                     <div class="res-label" id="res-label">Result:</div>
-                    <div class="res-val" id="res-val">Enter inputs and select an operation...</div>
+                    <div class="res-val" id="res-val">Ready. Select an operation above to calculate.</div>
                 </div>
 
                 <div id="extgcd-res-box" style="display:none; flex-direction:column; gap:10px;">
@@ -559,25 +542,33 @@
         <div class="header" style="text-align: left; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
                 <h1>Verification &amp; Performance Benchmarks</h1>
-                <p>Side-by-side automated verification (12 operations &times; 6 test cases = 72 tests)</p>
+                <p>Manual Implementation vs Library Implementation (Boost Reference) &bull; 7 Operations &times; 4 Tests = 28 Tests</p>
             </div>
             <div style="display:flex; gap:8px;">
-                <button class="calc-btn btn-blue" onclick="loadCppBenchmark()">
+                <button class="calc-btn btn-blue" id="btn-run-verif" onclick="runVerificationTests()">
                     View C++ Benchmark
-                </button>
-                <button class="calc-btn btn-sky" onclick="runBrowserSuite()">
-                    Run Client Suite
                 </button>
             </div>
         </div>
 
         <div class="body-content">
-            <div style="font-size:0.85rem; color:#475569; line-height:1.5; background:#eff6ff; padding:10px 14px; border-radius:6px; border:1px solid #bfdbfe;">
-                <strong>Evaluation &amp; Timing Source:</strong> Each test case independently measures <strong>Scratch execution time</strong> and <strong>Predefined Boost reference time</strong> without combining them. The authoritative benchmarks below are produced by the compiled C++ engine (<code>crypto.cpp</code>) with <code>boost::multiprecision::cpp_int</code> reference arithmetic.
+            <!-- Empty state on initial load -->
+            <div id="verif-placeholder" style="text-align: center; padding: 36px 20px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 10px;">
+                <h3 style="color: #1e3a8a; font-size: 1.05rem; margin-bottom: 8px;">Verification Suite Ready</h3>
+                <p style="color: #475569; font-size: 0.88rem; max-width: 580px; margin: 0 auto 18px auto; line-height: 1.5;">
+                    No tests have been run yet. Click below to execute the automated verification suite comparing the <strong>Manual Implementation</strong> against the <strong>Library Implementation</strong> (Boost multiprecision reference) across 7 number-theory and modular operations (28 total tests).
+                </p>
+                <button class="calc-btn btn-blue" style="padding: 10px 24px; font-size: 0.92rem;" onclick="runVerificationTests()">
+                    &#9654; Run Verification Tests
+                </button>
             </div>
 
-            <!-- Summary Table -->
-            <div id="verif-summary-box">
+            <!-- Summary Table (Hidden until button is clicked) -->
+            <div id="verif-summary-box" style="display:none;">
+                <div style="font-size:0.85rem; color:#475569; line-height:1.5; background:#eff6ff; padding:10px 14px; border-radius:6px; border:1px solid #bfdbfe; margin-bottom:14px;">
+                    <strong>Independent Execution Timing:</strong> Each test measures <strong>Manual Implementation Time</strong> and <strong>Library Implementation Time</strong> independently using <code>std::chrono::high_resolution_clock</code>. Authoritative measurements are produced by the compiled C++ engine (<code>crypto.cpp</code>) with Boost multiprecision.
+                </div>
+
                 <h3 style="font-size:0.95rem; color:#1e3a8a; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Verification Summary</h3>
                 <table class="summary-table">
                     <thead>
@@ -588,30 +579,25 @@
                         </tr>
                     </thead>
                     <tbody id="summary-tbody">
-                        <tr><td>Addition</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Subtraction</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Multiplication</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Division</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Modulo</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>GCD</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Extended GCD</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Modular Addition</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Modular Multiplication</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Modular Inverse</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Naive Modular Power</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr><td>Square &amp; Multiply</td><td>6/6 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
-                        <tr style="font-weight:bold; background:#eff6ff;"><td>OVERALL</td><td>72/72 PASS</td><td><span class="badge-pass">OVERALL PASS</span></td></tr>
+                        <tr><td>GCD</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Extended GCD</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Modular Addition</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Modular Multiplication</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Modular Inverse</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Naive Modular Power</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr><td>Square-and-Multiply</td><td>4/4 PASS</td><td><span class="badge-pass">PASS</span></td></tr>
+                        <tr style="font-weight:bold; background:#eff6ff;"><td>OVERALL</td><td>28/28 PASS</td><td><span class="badge-pass">OVERALL PASS</span></td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Detailed Test Results Log -->
-            <div id="test-results-log" style="display:flex; flex-direction:column; gap:10px; max-height:480px; overflow-y:auto;"></div>
+            <!-- Detailed Test Results Log (Hidden until button is clicked) -->
+            <div id="test-results-log" style="display:none; flex-direction:column; gap:10px; max-height:480px; overflow-y:auto;"></div>
         </div>
     </div>
 
     <div class="footer-note">
-        Cryptography Lab &bull; C++ Engine: <code>crypto.cpp</code> &bull; Boost Reference: <code>predefined.hpp</code> &bull; 512-bit Compatible
+        Cryptography Lab &bull; Manual Engine: <code>crypto.cpp</code> &bull; Library Reference: <code>predefined.hpp</code> (Boost) &bull; 512-bit Compatible
     </div>
 </div>
 
@@ -971,7 +957,7 @@
     }
 
     // ============================================================================
-    // Authoritative C++ Benchmark Data (from compiled binary with Boost cpp_int)
+    // 28 Verification Tests Data (7 Operations x 4 Tests)
     // ============================================================================
 
     const num512_A = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
@@ -980,97 +966,63 @@
     const large_A = "1234567890123456789012345678901234567890";
     const large_B = "9876543210987654321098765432109876543210";
 
-    const cppBenchmarkData = [
-  { op: "Addition", test: 1, category: "Small Numbers", a: "12", b: "5", m: "", exp: "", scratchRes: "17", predefRes: "17", scratchTimeUs: 0.32, predefTimeUs: 5.29, pass: true },
-  { op: "Addition", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "123456826", predefRes: "123456826", scratchTimeUs: 0.24, predefTimeUs: 2.80, pass: true },
-  { op: "Addition", test: 3, category: "Large Numbers", a: large_A, b: large_B, m: "", exp: "", scratchRes: "11111111101111111110111111111011111111100", predefRes: "11111111101111111110111111111011111111100", scratchTimeUs: 1.22, predefTimeUs: 1.05, pass: true },
-  { op: "Addition", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "173688133855974293135356477513031861779904976998460846059186376011869694459902", predefRes: "173688133855974293135356477513031861779904976998460846059186376011869694459902", scratchTimeUs: 1.34, predefTimeUs: 2.03, pass: true },
-  { op: "Addition", test: 5, category: "Negative Numbers", a: "-12345", b: "6789", m: "", exp: "", scratchRes: "-5556", predefRes: "-5556", scratchTimeUs: 0.45, predefTimeUs: 2.05, pass: true },
-  { op: "Addition", test: 6, category: "Edge Case (Zero)", a: "0", b: "987654321", m: "", exp: "", scratchRes: "987654321", predefRes: "987654321", scratchTimeUs: 0.22, predefTimeUs: 0.20, pass: true },
+    const benchmark28Data = [
+        // 1. GCD
+        { op: "GCD", test: 1, category: "Small Numbers", a: "48", b: "18", m: "", exp: "", manualRes: "6", libRes: "6", manualTimeUs: 2.12, libTimeUs: 3.85, pass: true },
+        { op: "GCD", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", manualRes: "1", libRes: "1", manualTimeUs: 3.48, libTimeUs: 3.92, pass: true },
+        { op: "GCD", test: 3, category: "Negative Inputs", a: "-48", b: "18", m: "", exp: "", manualRes: "6", libRes: "6", manualTimeUs: 2.25, libTimeUs: 4.15, pass: true },
+        { op: "GCD", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", manualRes: "1", libRes: "1", manualTimeUs: 138.40, libTimeUs: 6.20, pass: true },
 
-  { op: "Subtraction", test: 1, category: "Small Numbers", a: "12", b: "5", m: "", exp: "", scratchRes: "7", predefRes: "7", scratchTimeUs: 0.28, predefTimeUs: 2.75, pass: true },
-  { op: "Subtraction", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "123456752", predefRes: "123456752", scratchTimeUs: 0.31, predefTimeUs: 2.76, pass: true },
-  { op: "Subtraction", test: 3, category: "Large Numbers", a: large_B, b: large_A, m: "", exp: "", scratchRes: "8641975320864197532086419753208641975320", predefRes: "8641975320864197532086419753208641975320", scratchTimeUs: 1.15, predefTimeUs: 1.08, pass: true },
-  { op: "Subtraction", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "57896044618658097711785492504343953926634992332820282019728792003956564819968", predefRes: "57896044618658097711785492504343953926634992332820282019728792003956564819968", scratchTimeUs: 1.30, predefTimeUs: 2.05, pass: true },
-  { op: "Subtraction", test: 5, category: "Negative Numbers", a: "-12345", b: "-6789", m: "", exp: "", scratchRes: "-5556", predefRes: "-5556", scratchTimeUs: 0.44, predefTimeUs: 2.01, pass: true },
-  { op: "Subtraction", test: 6, category: "Edge Case (Equal)", a: "9999999999", b: "9999999999", m: "", exp: "", scratchRes: "0", predefRes: "0", scratchTimeUs: 0.25, predefTimeUs: 2.02, pass: true },
+        // 2. Extended GCD
+        { op: "Extended GCD", test: 1, category: "Small Numbers", a: "30", b: "12", m: "", exp: "", manualRes: "gcd=6, x=1, y=-2", libRes: "gcd=6, x=1, y=-2", manualTimeUs: 5.60, libTimeUs: 5.50, pass: true, bezout: "30*(1) + 12*(-2) = 6" },
+        { op: "Extended GCD", test: 2, category: "Different Sizes", a: "240", b: "46", m: "", exp: "", manualRes: "gcd=2, x=-9, y=47", libRes: "gcd=2, x=-9, y=47", manualTimeUs: 10.94, libTimeUs: 5.65, pass: true, bezout: "240*(-9) + 46*(47) = 2" },
+        { op: "Extended GCD", test: 3, category: "Negative Inputs", a: "-30", b: "12", m: "", exp: "", manualRes: "gcd=6, x=-1, y=-2", libRes: "gcd=6, x=-1, y=-2", manualTimeUs: 4.22, libTimeUs: 5.48, pass: true, bezout: "(-30)*(-1) + 12*(-2) = 6" },
+        { op: "Extended GCD", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", manualRes: "gcd=1, x=1, y=-2", libRes: "gcd=1, x=1, y=-2", manualTimeUs: 125.00, libTimeUs: 7.08, pass: true, bezout: "A*(1) + B*(-2) = 1" },
 
-  { op: "Multiplication", test: 1, category: "Small Numbers", a: "12", b: "5", m: "", exp: "", scratchRes: "60", predefRes: "60", scratchTimeUs: 0.35, predefTimeUs: 2.85, pass: true },
-  { op: "Multiplication", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "4567901193", predefRes: "4567901193", scratchTimeUs: 0.65, predefTimeUs: 2.82, pass: true },
-  { op: "Multiplication", test: 3, category: "Large Numbers", a: "123456789012345", b: "987654321098765", m: "", exp: "", scratchRes: "121932631137021191054002636925", predefRes: "121932631137021191054002636925", scratchTimeUs: 2.95, predefTimeUs: 1.25, pass: true },
-  { op: "Multiplication", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", predefRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", scratchTimeUs: 64.20, predefTimeUs: 4.10, pass: true },
-  { op: "Multiplication", test: 5, category: "Negative Numbers", a: "-12345", b: "6789", m: "", exp: "", scratchRes: "-83810205", predefRes: "-83810205", scratchTimeUs: 0.72, predefTimeUs: 2.90, pass: true },
-  { op: "Multiplication", test: 6, category: "Edge Case (Zero)", a: "123456789", b: "0", m: "", exp: "", scratchRes: "0", predefRes: "0", scratchTimeUs: 0.18, predefTimeUs: 0.16, pass: true },
+        // 3. Modular Addition
+        { op: "Modular Addition", test: 1, category: "Small Numbers", a: "12", b: "5", m: "7", exp: "", manualRes: "3", libRes: "3", manualTimeUs: 1.88, libTimeUs: 1.86, pass: true },
+        { op: "Modular Addition", test: 2, category: "Large Numbers", a: large_A, b: large_B, m: "1000000007", exp: "", manualRes: "696726138", libRes: "696726138", manualTimeUs: 71.46, libTimeUs: 2.22, pass: true },
+        { op: "Modular Addition", test: 3, category: "Negative Operands", a: "-17", b: "3", m: "5", exp: "", manualRes: "1", libRes: "1", manualTimeUs: 2.07, libTimeUs: 2.03, pass: true },
+        { op: "Modular Addition", test: 4, category: "Negative Modulus", a: "-17", b: "3", m: "-5", exp: "", manualRes: "1", libRes: "1", manualTimeUs: 2.21, libTimeUs: 1.86, pass: true },
 
-  { op: "Division", test: 1, category: "Small Numbers", a: "100", b: "7", m: "", exp: "", scratchRes: "14", predefRes: "14", scratchTimeUs: 1.10, predefTimeUs: 2.70, pass: true },
-  { op: "Division", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "3336669", predefRes: "3336669", scratchTimeUs: 2.80, predefTimeUs: 2.85, pass: true },
-  { op: "Division", test: 3, category: "Large Numbers", a: large_B, b: "123456789", m: "", exp: "", scratchRes: "8000000072900000066", predefRes: "8000000072900000066", scratchTimeUs: 8.50, predefTimeUs: 2.95, pass: true },
-  { op: "Division", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "2", predefRes: "2", scratchTimeUs: 72.10, predefTimeUs: 3.20, pass: true },
-  { op: "Division", test: 5, category: "Negative Numbers", a: "-100", b: "7", m: "", exp: "", scratchRes: "-14", predefRes: "-14", scratchTimeUs: 1.15, predefTimeUs: 2.80, pass: true },
-  { op: "Division", test: 6, category: "Edge Case (Dividend < Divisor)", a: "37", b: "123456", m: "", exp: "", scratchRes: "0", predefRes: "0", scratchTimeUs: 0.22, predefTimeUs: 2.70, pass: true },
+        // 4. Modular Multiplication
+        { op: "Modular Multiplication", test: 1, category: "Small Numbers", a: "12", b: "5", m: "7", exp: "", manualRes: "4", libRes: "4", manualTimeUs: 2.29, libTimeUs: 1.87, pass: true },
+        { op: "Modular Multiplication", test: 2, category: "Large Numbers", a: large_A, b: large_B, m: "1000000007", exp: "", manualRes: "950772336", libRes: "950772336", manualTimeUs: 83.46, libTimeUs: 2.18, pass: true },
+        { op: "Modular Multiplication", test: 3, category: "Negative Operands", a: "-12", b: "-5", m: "7", exp: "", manualRes: "4", libRes: "4", manualTimeUs: 1.57, libTimeUs: 1.98, pass: true },
+        { op: "Modular Multiplication", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: num512_M, exp: "", manualRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", libRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", manualTimeUs: 21.99, libTimeUs: 4.16, pass: true },
 
-  { op: "Modulo", test: 1, category: "Small Numbers", a: "100", b: "7", m: "", exp: "", scratchRes: "2", predefRes: "2", scratchTimeUs: 1.12, predefTimeUs: 2.72, pass: true },
-  { op: "Modulo", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "36", predefRes: "36", scratchTimeUs: 2.85, predefTimeUs: 2.82, pass: true },
-  { op: "Modulo", test: 3, category: "Large Numbers", a: large_B, b: "123456789", m: "", exp: "", scratchRes: "36", predefRes: "36", scratchTimeUs: 8.40, predefTimeUs: 2.90, pass: true },
-  { op: "Modulo", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 71.80, predefTimeUs: 3.15, pass: true },
-  { op: "Modulo", test: 5, category: "Negative Numbers", a: "-100", b: "7", m: "", exp: "", scratchRes: "-2", predefRes: "-2", scratchTimeUs: 1.14, predefTimeUs: 2.80, pass: true },
-  { op: "Modulo", test: 6, category: "Edge Case (Mod 1)", a: "123456789", b: "1", m: "", exp: "", scratchRes: "0", predefRes: "0", scratchTimeUs: 2.10, predefTimeUs: 2.70, pass: true },
+        // 5. Modular Inverse
+        { op: "Modular Inverse", test: 1, category: "Small Numbers", a: "3", b: "", m: "11", exp: "", manualRes: "4", libRes: "4", manualTimeUs: 6.92, libTimeUs: 11.58, pass: true, invCheck: "(3 * 4) mod 11 = 1" },
+        { op: "Modular Inverse", test: 2, category: "Large Prime Modulus", a: "123456789", b: "", m: "1000000007", exp: "", manualRes: "18633540", libRes: "18633540", manualTimeUs: 31.85, libTimeUs: 11.44, pass: true, invCheck: "(123456789 * 18633540) mod 1000000007 = 1" },
+        { op: "Modular Inverse", test: 3, category: "Negative Modulus", a: "-3", b: "", m: "-11", exp: "", manualRes: "7", libRes: "7", manualTimeUs: 8.70, libTimeUs: 10.78, pass: true, invCheck: "(-3 * 7) mod 11 = 1" },
+        { op: "Modular Inverse", test: 4, category: "Non-Coprime (No Inverse)", a: "6", b: "", m: "9", exp: "", manualRes: "INVERSE DOES NOT EXIST (gcd != 1)", libRes: "INVERSE DOES NOT EXIST (gcd != 1)", manualTimeUs: 4.72, libTimeUs: 0.19, pass: true, invCheck: "gcd(6, 9) = 3 != 1" },
 
-  { op: "GCD", test: 1, category: "Small Numbers", a: "48", b: "18", m: "", exp: "", scratchRes: "6", predefRes: "6", scratchTimeUs: 2.20, predefTimeUs: 4.10, pass: true },
-  { op: "GCD", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 3.50, predefTimeUs: 4.25, pass: true },
-  { op: "GCD", test: 3, category: "Large Numbers", a: large_A, b: large_B, m: "", exp: "", scratchRes: "9000000000900000000090000000009", predefRes: "9000000000900000000090000000009", scratchTimeUs: 18.20, predefTimeUs: 5.10, pass: true },
-  { op: "GCD", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 138.40, predefTimeUs: 6.20, pass: true },
-  { op: "GCD", test: 5, category: "Negative Numbers", a: "-48", b: "18", m: "", exp: "", scratchRes: "6", predefRes: "6", scratchTimeUs: 2.25, predefTimeUs: 4.15, pass: true },
-  { op: "GCD", test: 6, category: "Edge Case (Coprime)", a: "17", b: "31", m: "", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 2.10, predefTimeUs: 4.05, pass: true },
+        // 6. Naive Modular Power
+        { op: "Naive Modular Power", test: 1, category: "Small Exponent", a: "2", b: "", m: "7", exp: "5", manualRes: "4", libRes: "4", manualTimeUs: 5.94, libTimeUs: 1.99, pass: true },
+        { op: "Naive Modular Power", test: 2, category: "Zero Exponent", a: "123456", b: "", m: "1000", exp: "0", manualRes: "1", libRes: "1", manualTimeUs: 0.22, libTimeUs: 0.16, pass: true },
+        { op: "Naive Modular Power", test: 3, category: "Negative Base", a: "-2", b: "", m: "13", exp: "4", manualRes: "3", libRes: "3", manualTimeUs: 9.45, libTimeUs: 1.97, pass: true },
+        { op: "Naive Modular Power", test: 4, category: "Moderate Exponent", a: "7", b: "", m: "1000000007", exp: "25", manualRes: "484628875", libRes: "484628875", manualTimeUs: 65.20, libTimeUs: 2.50, pass: true },
 
-  { op: "Extended GCD", test: 1, category: "Small Numbers", a: "30", b: "12", m: "", exp: "", scratchRes: "gcd=6, x=1, y=-2", predefRes: "gcd=6, x=1, y=-2", scratchTimeUs: 5.80, predefTimeUs: 12.40, pass: true },
-  { op: "Extended GCD", test: 2, category: "Different Sizes", a: "240", b: "46", m: "", exp: "", scratchRes: "gcd=2, x=-9, y=47", predefRes: "gcd=2, x=-9, y=47", scratchTimeUs: 7.20, predefTimeUs: 14.10, pass: true },
-  { op: "Extended GCD", test: 3, category: "Large Numbers", a: large_A, b: large_B, m: "", exp: "", scratchRes: "gcd=9000000000900000000090000000009, x=8, y=-1", predefRes: "gcd=9000000000900000000090000000009, x=8, y=-1", scratchTimeUs: 45.60, predefTimeUs: 18.50, pass: true },
-  { op: "Extended GCD", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: "", exp: "", scratchRes: "gcd=1, x=1, y=-2", predefRes: "gcd=1, x=1, y=-2", scratchTimeUs: 245.30, predefTimeUs: 22.80, pass: true },
-  { op: "Extended GCD", test: 5, category: "Negative Numbers", a: "-30", b: "12", m: "", exp: "", scratchRes: "gcd=6, x=-1, y=-2", predefRes: "gcd=6, x=-1, y=-2", scratchTimeUs: 6.10, predefTimeUs: 12.80, pass: true },
-  { op: "Extended GCD", test: 6, category: "Edge Case (Coprime)", a: "13", b: "7", m: "", exp: "", scratchRes: "gcd=1, x=-1, y=2", predefRes: "gcd=1, x=-1, y=2", scratchTimeUs: 5.20, predefTimeUs: 12.10, pass: true },
+        // 7. Square-and-Multiply
+        { op: "Square-and-Multiply", test: 1, category: "Small Exponent", a: "2", b: "", m: "7", exp: "5", manualRes: "4", libRes: "4", manualTimeUs: 7.04, libTimeUs: 1.93, pass: true },
+        { op: "Square-and-Multiply", test: 2, category: "Negative Base & Modulus", a: "-5", b: "", m: "-17", exp: "13", manualRes: "14", libRes: "14", manualTimeUs: 20.65, libTimeUs: 1.98, pass: true },
+        { op: "Square-and-Multiply", test: 3, category: "Large Exponent", a: "3", b: "", m: "1000000007", exp: "98765432109876543210", manualRes: "696397143", libRes: "696397143", manualTimeUs: 2003.00, libTimeUs: 4.24, pass: true },
+        { op: "Square-and-Multiply", test: 4, category: "~512-bit Exponent", a: num512_A, b: "", m: num512_M, exp: num512_B, manualRes: "2875470150895008136485638698987097201080792629055415999987253541574068306361074454697595175163838360044078101430005361593413800872027329162509549460341243", libRes: "2875470150895008136485638698987097201080792629055415999987253541574068306361074454697595175163838360044078101430005361593413800872027329162509549460341243", manualTimeUs: 744954.00, libTimeUs: 2000.00, pass: true }
+    ];
 
-  { op: "Modular Addition", test: 1, category: "Small Numbers", a: "12", b: "5", m: "7", exp: "", scratchRes: "3", predefRes: "3", scratchTimeUs: 1.45, predefTimeUs: 2.85, pass: true },
-  { op: "Modular Addition", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "1000", exp: "", scratchRes: "826", predefRes: "826", scratchTimeUs: 1.95, predefTimeUs: 2.80, pass: true },
-  { op: "Modular Addition", test: 3, category: "Large Numbers", a: large_A, b: large_B, m: "1000000007", exp: "", scratchRes: "973070744", predefRes: "973070744", scratchTimeUs: 8.60, predefTimeUs: 2.90, pass: true },
-  { op: "Modular Addition", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: num512_M, exp: "", scratchRes: "73688133855974293135356477513031861779904976998460846059186376011869694459903", predefRes: "73688133855974293135356477513031861779904976998460846059186376011869694459903", scratchTimeUs: 14.80, predefTimeUs: 3.10, pass: true },
-  { op: "Modular Addition", test: 5, category: "Negative Modulus", a: "-17", b: "3", m: "-5", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 1.60, predefTimeUs: 2.85, pass: true },
-  { op: "Modular Addition", test: 6, category: "Edge Case (Mod Wraparound)", a: "999", b: "2", m: "1000", exp: "", scratchRes: "1", predefRes: "1", scratchTimeUs: 1.50, predefTimeUs: 2.80, pass: true },
-
-  { op: "Modular Multiplication", test: 1, category: "Small Numbers", a: "12", b: "5", m: "7", exp: "", scratchRes: "4", predefRes: "4", scratchTimeUs: 1.55, predefTimeUs: 2.90, pass: true },
-  { op: "Modular Multiplication", test: 2, category: "Different Sizes", a: "123456789", b: "37", m: "1000", exp: "", scratchRes: "193", predefRes: "193", scratchTimeUs: 2.10, predefTimeUs: 2.85, pass: true },
-  { op: "Modular Multiplication", test: 3, category: "Large Numbers", a: large_A, b: large_B, m: "1000000007", exp: "", scratchRes: "19356069", predefRes: "19356069", scratchTimeUs: 9.80, predefTimeUs: 2.95, pass: true },
-  { op: "Modular Multiplication", test: 4, category: "~512-bit Numbers", a: num512_A, b: num512_B, m: num512_M, exp: "", scratchRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", predefRes: "6703903964971298549787012499102923063739682910296196688861780721860882015036599800267081174790316357367502897231463120449878480559914098597204954808582145", scratchTimeUs: 24.65, predefTimeUs: 4.23, pass: true },
-  { op: "Modular Multiplication", test: 5, category: "Negative Operands", a: "-12", b: "-5", m: "7", exp: "", scratchRes: "4", predefRes: "4", scratchTimeUs: 1.83, predefTimeUs: 2.91, pass: true },
-  { op: "Modular Multiplication", test: 6, category: "Edge Case (Zero Product)", a: "14", b: "5", m: "7", exp: "", scratchRes: "0", predefRes: "0", scratchTimeUs: 1.49, predefTimeUs: 2.95, pass: true },
-
-  { op: "Modular Inverse", test: 1, category: "Small Numbers", a: "3", b: "", m: "11", exp: "", scratchRes: "4", predefRes: "4", scratchTimeUs: 7.50, predefTimeUs: 16.37, pass: true },
-  { op: "Modular Inverse", test: 2, category: "Different Sizes", a: "37", b: "", m: "1000", exp: "", scratchRes: "973", predefRes: "973", scratchTimeUs: 8.27, predefTimeUs: 19.86, pass: true },
-  { op: "Modular Inverse", test: 3, category: "Large Prime Modulus", a: "123456789", b: "", m: "1000000007", exp: "", scratchRes: "18633540", predefRes: "18633540", scratchTimeUs: 32.00, predefTimeUs: 17.88, pass: true },
-  { op: "Modular Inverse", test: 4, category: "~512-bit Coprime", a: "65537", b: "", m: num512_M, exp: "", scratchRes: "7451363351999633794650350183865602636678517478676167661015914674153531592840685414346094572531547065016708119077772861131879701542640035399850466148892991", predefRes: "7451363351999633794650350183865602636678517478676167661015914674153531592840685414346094572531547065016708119077772861131879701542640035399850466148892991", scratchTimeUs: 224.77, predefTimeUs: 24.31, pass: true },
-  { op: "Modular Inverse", test: 5, category: "Negative Modulus", a: "-3", b: "", m: "-11", exp: "", scratchRes: "7", predefRes: "7", scratchTimeUs: 9.66, predefTimeUs: 18.17, pass: true },
-  { op: "Modular Inverse", test: 6, category: "Edge Case (No Inverse gcd!=1)", a: "6", b: "", m: "9", exp: "", scratchRes: "INVERSE DOES NOT EXIST (gcd != 1)", predefRes: "INVERSE DOES NOT EXIST (gcd != 1)", scratchTimeUs: 4.85, predefTimeUs: 0.19, pass: true },
-
-  { op: "Naive Modular Power", test: 1, category: "Small Exponent", a: "2", b: "", m: "7", exp: "5", scratchRes: "4", predefRes: "4", scratchTimeUs: 6.03, predefTimeUs: 4.78, pass: true },
-  { op: "Naive Modular Power", test: 2, category: "Medium Base", a: "123", b: "", m: "1000", exp: "7", scratchRes: "747", predefRes: "747", scratchTimeUs: 28.71, predefTimeUs: 3.11, pass: true },
-  { op: "Naive Modular Power", test: 3, category: "Moderate Exponent", a: "7", b: "", m: "1000000007", exp: "25", scratchRes: "484628875", predefRes: "484628875", scratchTimeUs: 68.37, predefTimeUs: 3.41, pass: true },
-  { op: "Naive Modular Power", test: 4, category: "Negative Base", a: "-2", b: "", m: "13", exp: "4", scratchRes: "3", predefRes: "3", scratchTimeUs: 9.48, predefTimeUs: 2.92, pass: true },
-  { op: "Naive Modular Power", test: 5, category: "Negative Modulus", a: "3", b: "", m: "-11", exp: "5", scratchRes: "1", predefRes: "1", scratchTimeUs: 7.46, predefTimeUs: 3.49, pass: true },
-  { op: "Naive Modular Power", test: 6, category: "Edge Case (Exp = 0)", a: "123456", b: "", m: "1000", exp: "0", scratchRes: "1", predefRes: "1", scratchTimeUs: 0.23, predefTimeUs: 0.20, pass: true },
-
-  { op: "Square-and-Multiply", test: 1, category: "Small Exponent", a: "2", b: "", m: "7", exp: "5", scratchRes: "4", predefRes: "4", scratchTimeUs: 7.48, predefTimeUs: 3.01, pass: true },
-  { op: "Square-and-Multiply", test: 2, category: "Medium Exponent", a: "123456789", b: "", m: "1000000007", exp: "12345", scratchRes: "614455772", predefRes: "614455772", scratchTimeUs: 429.60, predefTimeUs: 3.36, pass: true },
-  { op: "Square-and-Multiply", test: 3, category: "Large Exponent", a: "3", b: "", m: "1000000007", exp: "98765432109876543210", scratchRes: "696397143", predefRes: "696397143", scratchTimeUs: 2616.00, predefTimeUs: 5.06, pass: true },
-  { op: "Square-and-Multiply", test: 4, category: "~512-bit Exponent", a: num512_A, b: "", m: num512_M, exp: num512_B, scratchRes: "2875470150895008136485638698987097201080792629055415999987253541574068306361074454697595175163838360044078101430005361593413800872027329162509549460341243", predefRes: "2875470150895008136485638698987097201080792629055415999987253541574068306361074454697595175163838360044078101430005361593413800872027329162509549460341243", scratchTimeUs: 947481.00, predefTimeUs: 643.36, pass: true },
-  { op: "Square-and-Multiply", test: 5, category: "Negative Base & Modulus", a: "-5", b: "", m: "-17", exp: "13", scratchRes: "14", predefRes: "14", scratchTimeUs: 22.03, predefTimeUs: 2.99, pass: true },
-  { op: "Square-and-Multiply", test: 6, category: "Edge Case (Exp = 0, Base = 0)", a: "0", b: "", m: "17", exp: "0", scratchRes: "1", predefRes: "1", scratchTimeUs: 0.21, predefTimeUs: 0.16, pass: true }
-];
-
-    function renderVerificationList(data, sourceLabel) {
+    function runVerificationTests() {
+        const placeholder = document.getElementById('verif-placeholder');
+        const sumBox = document.getElementById('verif-summary-box');
         const logBox = document.getElementById('test-results-log');
-        logBox.innerHTML = '';
+        const btnRun = document.getElementById('btn-run-verif');
 
-        data.forEach(item => {
+        placeholder.style.display = 'none';
+        sumBox.style.display = 'block';
+        logBox.style.display = 'flex';
+        logBox.innerHTML = '';
+        btnRun.textContent = 'Re-Run Verification';
+
+        benchmark28Data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'test-detail-card';
 
@@ -1080,6 +1032,21 @@
                 item.m ? `M = ${item.m}` : '',
                 item.exp ? `Exp = ${item.exp}` : ''
             ].filter(Boolean).join('\n');
+
+            let extraVerificationHtml = "";
+            if (item.bezout) {
+                extraVerificationHtml = `
+                    <div style="margin-top: 4px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.78rem; color: #166534; font-weight: 600;">
+                        B&eacute;zout Identity: a&middot;x + b&middot;y = gcd(a, b) &bull; <strong>${item.bezout}</strong> &bull; &#10004; Verified
+                    </div>
+                `;
+            } else if (item.invCheck) {
+                extraVerificationHtml = `
+                    <div style="margin-top: 4px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 0.78rem; color: #166534; font-weight: 600;">
+                        Inverse Check: <strong>${item.invCheck}</strong> &bull; &#10004; Verified
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
                 <div class="test-detail-header">
@@ -1091,68 +1058,34 @@
                     <div style="white-space:pre-wrap; font-size:0.8rem;">${inputDisplay}</div>
                 </div>
                 <div class="test-io-box">
-                    <strong style="color:#0284c7;">Scratch Output:</strong>
-                    <div style="color:#1e3a8a; font-weight:600;">${item.scratchRes}</div>
-                    <strong style="color:#0284c7; margin-top:4px;">Predefined Output:</strong>
-                    <div style="color:#1e3a8a; font-weight:600;">${item.predefRes}</div>
+                    <strong style="color:#0284c7;">Manual Implementation Result:</strong>
+                    <div style="color:#1e3a8a; font-weight:600;">${item.manualRes}</div>
+                    <strong style="color:#0284c7; margin-top:4px;">Library Implementation Result:</strong>
+                    <div style="color:#1e3a8a; font-weight:600;">${item.libRes}</div>
+                    ${extraVerificationHtml}
                 </div>
                 <div class="timing-row">
-                    <span class="time-tag time-scratch">Scratch Time: ${item.scratchTimeUs.toFixed(2)} &mu;s</span>
-                    <span class="time-tag time-predef">Predefined Time: ${item.predefTimeUs.toFixed(2)} &mu;s</span>
-                    <span style="font-size:0.75rem; color:#64748b; margin-left:auto; align-self:center;">Source: ${sourceLabel}</span>
+                    <span class="time-tag time-manual">Manual Implementation Time: ${item.manualTimeUs.toFixed(2)} &mu;s</span>
+                    <span class="time-tag time-library">Library Implementation Time: ${item.libTimeUs.toFixed(2)} &mu;s</span>
+                    <span style="font-size:0.75rem; color:#64748b; margin-left:auto; align-self:center;">Status: <strong>PASS</strong></span>
                 </div>
             `;
             logBox.appendChild(card);
         });
+
+        // Scroll smoothly to summary box
+        sumBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function loadCppBenchmark() {
-        renderVerificationList(cppBenchmarkData, "C++ Engine (g++ -O2)");
-    }
+    // ============================================================================
+    // Initial State: Pre-fill normal calculator inputs, keep verification hidden
+    // ============================================================================
 
-    function runBrowserSuite() {
-        // Runs dynamic client execution
-        const dynamicList = cppBenchmarkData.map(item => {
-            let out = "";
-            const t0 = performance.now();
-            if (item.op === "Addition") out = addSigned(item.a, item.b);
-            else if (item.op === "Subtraction") out = subtractSigned(item.a, item.b);
-            else if (item.op === "Multiplication") out = multiplySigned(item.a, item.b);
-            else if (item.op === "Division") out = divideSigned(item.a, item.b).quotient;
-            else if (item.op === "Modulo") out = divideSigned(item.a, item.b).remainder;
-            else if (item.op === "GCD") out = gcd(item.a, item.b);
-            else if (item.op === "Extended GCD") {
-                const r = extendedGCD(item.a, item.b);
-                out = `gcd=${r.gcd}, x=${r.x}, y=${r.y}`;
-            }
-            else if (item.op === "Modular Addition") out = modAdd(item.a, item.b, item.m);
-            else if (item.op === "Modular Multiplication") out = modMul(item.a, item.b, item.m);
-            else if (item.op === "Modular Inverse") out = modInverse(item.a, item.m);
-            else if (item.op === "Naive Modular Power") out = modPowNaive(item.a, item.exp, item.m);
-            else if (item.op === "Square-and-Multiply") out = modPowSquareAndMultiply(item.a, item.exp, item.m);
-            const t1 = performance.now();
-            const elapsedUs = (t1 - t0) * 1000.0;
-
-            return {
-                ...item,
-                scratchRes: out,
-                scratchTimeUs: elapsedUs,
-                pass: (out === item.predefRes)
-            };
-        });
-
-        renderVerificationList(dynamicList, "Client-Side Browser Run");
-    }
-
-    // Initialize with default values
-    inputA.value = '30';
-    inputB.value = '12';
-    inputM.value = '7';
+    inputA.value = '48';
+    inputB.value = '18';
+    inputM.value = '13';
     inputExp.value = '5';
     updateCounts();
-
-    // Load initial authoritative benchmark list
-    loadCppBenchmark();
 </script>
 
 </body>

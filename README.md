@@ -47,27 +47,34 @@ The project maintains two distinct implementations:
 
 ## Verification
 
-The automated verification suite executes **72 automated test cases** (12 operations $\times$ 6 test categories):
+The automated verification suite focuses on core number-theoretic and cryptographic operations, executing **28 automated test cases** (7 operations $\times$ 4 test categories):
 
-* **Categories Evaluated**:
-  1. Small numbers
-  2. Numbers of different lengths
-  3. Large numbers (~40 digits / 128-bit)
-  4. 512-bit integers (~155 digits)
-  5. Negative numbers and negative moduli
-  6. Edge cases (zeros, identical values, non-coprime inputs)
+* **Operations Evaluated**:
+  1. Euclidean GCD
+  2. Extended Euclidean GCD (with Bézout identity verification)
+  3. Modular Addition
+  4. Modular Multiplication
+  5. Modular Multiplicative Inverse
+  6. Naive Modular Exponentiation
+  7. Square-and-Multiply Modular Exponentiation (512-bit)
+
+* **Categories Evaluated (4 Cases per Operation)**:
+  1. Normal / small values
+  2. Different-sized / large values
+  3. Negative values and negative moduli
+  4. Large / ~512-bit values & edge cases
 
 ### Correctness Comparison
-Every test case compares the output of the **Scratch implementation** against the **Boost `cpp_int` reference implementation**:
-* Arithmetic and modular operations must produce identical string representations.
-* Extended GCD is verified by checking the GCD match and independently testing the Bézout identity: $a \cdot x + b \cdot y == \gcd(a, b)$.
-* Modular Inverse is verified by confirming $(a \cdot x) \bmod M == 1$ when an inverse exists, or verifying error detection when $\gcd(a, m) \neq 1$.
+Every test case compares the output of the **Manual Implementation** against the **Library Implementation** (`boost::multiprecision::cpp_int` reference):
+* Modular operations and GCD must produce identical results.
+* Extended GCD verifies $\gcd(a, b)$ and independently asserts the Bézout identity: $a \cdot x + b \cdot y == \gcd(a, b)$.
+* Modular Inverse confirms $(a \cdot x) \bmod M == 1$ when an inverse exists, and correctly reports `"INVERSE DOES NOT EXIST (gcd != 1)"` when $\gcd(a, m) \neq 1$.
 
 ### Performance Measurement
 For every test case, execution times are measured independently using `std::chrono::high_resolution_clock`:
-* **Scratch execution time** is measured separately around the manual function call.
-* **Predefined execution time** is measured separately around the Boost reference call.
-* Timers isolate the calculation logic and exclude I/O, parsing, and console printing.
+* **Manual Implementation Time** is measured separately around the custom algorithm call.
+* **Library Implementation Time** is measured separately around the Boost reference call.
+* Timers isolate function execution and strictly exclude I/O, parsing, and console printing.
 
 ---
 
