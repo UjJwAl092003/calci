@@ -462,18 +462,24 @@ std::string generateRandom512Bit() {
 template <typename Func>
 std::pair<std::string, double> measureTime(Func f) {
     // Warmup call
+    // Warm up
     std::string res = f();
 
-    // Use multiple iterations for ultra-fast operations to get clean sub-microsecond precision
-    const int iterations = 10;
     auto t1 = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < iterations; i++) {
+    int iterations = 0;
+    auto t2 = t1;
+    while (true) {
         res = f();
+        iterations++;
+        t2 = std::chrono::high_resolution_clock::now();
+        double elapsedUs = std::chrono::duration<double, std::micro>(t2 - t1).count();
+        if (elapsedUs >= 2000.0) break; // Run until at least 2ms elapsed for high timer precision
+        if (iterations >= 20000) break; // Or max 20000 iterations
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
 
-    double elapsedMs = std::chrono::duration<double, std::milli>(t2 - t1).count() / iterations;
-    return {res, elapsedMs};
+    double totalUs = std::chrono::duration<double, std::micro>(t2 - t1).count();
+    double avgUs = (iterations > 0) ? (totalUs / iterations) : 0.0;
+    return {res, avgUs};
 }
 
 struct TestCase {
@@ -486,7 +492,21 @@ struct TestCase {
     std::string exp;
 };
 
-void runSingleTest(const TestCase& tc, int& passedCount, int& totalCount) {
+struct TestResult {
+    TestCase tc;
+    std::string scratchRes;
+    std::string predefRes;
+    double scratchTime;
+    double predefTime;
+    bool pass;
+};
+
+struct OpGroup {
+    std::string name;
+    std::vector<TestCase> cases;
+};
+
+TestResult runSingleTest(const TestCase& tc, int& passedCount, int& totalCount, bool printConsole = true) {
     totalCount++;
 
     std::string scratchRes, predefRes;
@@ -592,28 +612,28 @@ void runSingleTest(const TestCase& tc, int& passedCount, int& totalCount) {
 
     if (isPass) passedCount++;
 
-    std::cout << "====================================================\n";
-    std::cout << tc.opName << " - TEST " << tc.testNum << " (" << tc.category << ")\n";
-    std::cout << "====================================================\n";
-    std::cout << "Input:\n";
-    if (!tc.a.empty()) std::cout << "  A = " << (tc.a.length() > 60 ? tc.a.substr(0, 57) + "..." : tc.a) << "\n";
-    if (!tc.b.empty()) std::cout << "  B = " << (tc.b.length() > 60 ? tc.b.substr(0, 57) + "..." : tc.b) << "\n";
-    if (!tc.m.empty()) std::cout << "  M = " << (tc.m.length() > 60 ? tc.m.substr(0, 57) + "..." : tc.m) << "\n";
-    if (!tc.exp.empty()) std::cout << "  Exp = " << (tc.exp.length() > 60 ? tc.exp.substr(0, 57) + "..." : tc.exp) << "\n";
+    if (printConsole) {
+        std::cout << "====================================================\n";
+        std::cout << tc.opName << " - TEST " << tc.testNum << " (" << tc.category << ")\n";
+        std::cout << "====================================================\n";
+        std::cout << "Input:\n";
+        if (!tc.a.empty()) std::cout << "  A = " << (tc.a.length() > 60 ? tc.a.substr(0, 57) + "..." : tc.a) << "\n";
+        if (!tc.b.empty()) std::cout << "  B = " << (tc.b.length() > 60 ? tc.b.substr(0, 57) + "..." : tc.b) << "\n";
+        if (!tc.m.empty()) std::cout << "  M = " << (tc.m.length() > 60 ? tc.m.substr(0, 57) + "..." : tc.m) << "\n";
+        if (!tc.exp.empty()) std::cout << "  Exp = " << (tc.exp.length() > 60 ? tc.exp.substr(0, 57) + "..." : tc.exp) << "\n";
 
-    std::cout << "\nScratch Output:\n  " << (scratchRes.length() > 70 ? scratchRes.substr(0, 67) + "..." : scratchRes) << "\n";
-    std::cout << "Predefined Output:\n  " << (predefRes.length() > 70 ? predefRes.substr(0, 67) + "..." : predefRes) << "\n";
-    std::cout << std::fixed << std::setprecision(4);
-    std::cout << "\nScratch Time:     " << scratchTime << " ms\n";
-    std::cout << "Predefined Time:  " << predefTime << " ms\n";
-    std::cout << "Status:           " << (isPass ? "PASS" : "FAIL") << "\n\n";
+        std::cout << "\nScratch Output:\n  " << (scratchRes.length() > 70 ? scratchRes.substr(0, 67) + "..." : scratchRes) << "\n";
+        std::cout << "Predefined Output:\n  " << (predefRes.length() > 70 ? predefRes.substr(0, 67) + "..." : predefRes) << "\n";
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "\nScratch Time:     " << scratchTime << " μs\n";
+        std::cout << "Predefined Time:  " << predefTime << " μs\n";
+        std::cout << "Status:           " << (isPass ? "PASS" : "FAIL") << "\n\n";
+    }
+
+    return TestResult{tc, scratchRes, predefRes, scratchTime, predefTime, isPass};
 }
 
-void runAllAutomatedVerifications() {
-    std::cout << "\n====================================================\n";
-    std::cout << "  CRYPTOGRAPHY LAB: SCRATCH vs PREDEFINED VERIFICATION\n";
-    std::cout << "====================================================\n\n";
-
+std::vector<OpGroup> getAllTestGroups() {
     // 512-bit test vectors (~155 digits each)
     std::string num512_A = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
     std::string num512_B = "57896044618658097711785492504343953926634992332820282019728792003956564819967";
@@ -623,12 +643,7 @@ void runAllAutomatedVerifications() {
     std::string large_A = "1234567890123456789012345678901234567890";
     std::string large_B = "9876543210987654321098765432109876543210";
 
-    struct OpGroup {
-        std::string name;
-        std::vector<TestCase> cases;
-    };
-
-    std::vector<OpGroup> groups = {
+    return std::vector<OpGroup>{
         {"Addition", {
             {"Addition", 1, "Small Numbers", "12", "5", "", ""},
             {"Addition", 2, "Different Sizes", "123456789", "37", "", ""},
@@ -726,7 +741,27 @@ void runAllAutomatedVerifications() {
             {"Square-and-Multiply", 6, "Edge Case (Exp = 0, Base = 0)", "0", "", "17", "0"}
         }}
     };
+}
 
+std::string escapeJson(const std::string& s) {
+    std::string out;
+    for (char c : s) {
+        if (c == '"') out += "\\\"";
+        else if (c == '\\') out += "\\\\";
+        else if (c == '\n') out += "\\n";
+        else if (c == '\r') out += "\\r";
+        else if (c == '\t') out += "\\t";
+        else out += c;
+    }
+    return out;
+}
+
+void runAllAutomatedVerifications() {
+    std::cout << "\n====================================================\n";
+    std::cout << "  CRYPTOGRAPHY LAB: SCRATCH vs PREDEFINED VERIFICATION\n";
+    std::cout << "====================================================\n\n";
+
+    auto groups = getAllTestGroups();
     std::vector<std::pair<std::string, std::pair<int, int>>> summary;
     int overallPassed = 0;
     int overallTotal = 0;
@@ -735,7 +770,7 @@ void runAllAutomatedVerifications() {
         int passed = 0;
         int total = 0;
         for (const auto& tc : group.cases) {
-            runSingleTest(tc, passed, total);
+            runSingleTest(tc, passed, total, true);
         }
         summary.push_back({group.name, {passed, total}});
         overallPassed += passed;
@@ -756,6 +791,36 @@ void runAllAutomatedVerifications() {
               << " (" << overallPassed << "/" << overallTotal << " tests passed)\n";
     std::cout << "====================================================\n\n";
 }
+
+void exportAllVerificationsJson() {
+    auto groups = getAllTestGroups();
+    int passed = 0, total = 0;
+    std::cout << "[\n";
+    bool first = true;
+    for (const auto& grp : groups) {
+        for (const auto& tc : grp.cases) {
+            TestResult tr = runSingleTest(tc, passed, total, false);
+            if (!first) std::cout << ",\n";
+            first = false;
+            std::cout << "  {\n";
+            std::cout << "    \"op\": \"" << escapeJson(tr.tc.opName) << "\",\n";
+            std::cout << "    \"test\": " << tr.tc.testNum << ",\n";
+            std::cout << "    \"category\": \"" << escapeJson(tr.tc.category) << "\",\n";
+            std::cout << "    \"a\": \"" << escapeJson(tr.tc.a) << "\",\n";
+            std::cout << "    \"b\": \"" << escapeJson(tr.tc.b) << "\",\n";
+            std::cout << "    \"m\": \"" << escapeJson(tr.tc.m) << "\",\n";
+            std::cout << "    \"exp\": \"" << escapeJson(tr.tc.exp) << "\",\n";
+            std::cout << "    \"scratchRes\": \"" << escapeJson(tr.scratchRes) << "\",\n";
+            std::cout << "    \"predefRes\": \"" << escapeJson(tr.predefRes) << "\",\n";
+            std::cout << std::fixed << std::setprecision(2);
+            std::cout << "    \"scratchTimeUs\": " << tr.scratchTime << ",\n";
+            std::cout << "    \"predefTimeUs\": " << tr.predefTime << ",\n";
+            std::cout << "    \"pass\": " << (tr.pass ? "true" : "false") << "\n";
+            std::cout << "  }";
+        }
+    }
+}
+
 
 // ----------------------------------------------------------------------------
 // 5. INTERACTIVE TERMINAL MENU & CLI CONTROLLER
@@ -792,6 +857,11 @@ int main(int argc, char* argv[]) {
 
         if (cmd == "test") {
             runAllAutomatedVerifications();
+            return 0;
+        }
+
+        if (cmd == "json") {
+            exportAllVerificationsJson();
             return 0;
         }
 

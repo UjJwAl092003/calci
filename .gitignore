@@ -33,3 +33,9 @@ frontend/
 server.py
 run.bat
 custom_big_integer.cpp
+
+# Private Local Viva & Evaluation Notes (do not commit to public repo)
+VIVA_NOTES.md
+scratch/
+test_output.txt
+

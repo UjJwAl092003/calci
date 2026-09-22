@@ -1,130 +1,142 @@
-# Cryptography Lab - Big Integer Arithmetic & Extended Euclidean Algorithm
+# Cryptography Calculator
 
-[![Verification](https://img.shields.io/badge/Verification-72%2F72%20PASS-2ea44f?style=for-the-badge)](https://github.com/UjJwAl092003/calci)
-
-Complete implementation of fundamental number-theoretic and cryptographic operations supporting **at least 512-bit integers** (~155 decimal digits), with side-by-side automated verification between a manual **Scratch implementation** and an authoritative **Predefined Boost Reference**.
+An arbitrary-precision decimal integer arithmetic and cryptographic calculator developed in C++ with an interactive web demonstration. The project supports arbitrary-precision integers exceeding 512 bits (~155 decimal digits) and features a comprehensive automated verification engine comparing a manual scratch implementation against Boost multiprecision reference arithmetic.
 
 ---
 
-## 1. Project Architecture
+## Live Demo
 
-The project consists of simple, portable, student-friendly files:
+Try the interactive web calculator online:
 
-```text
-calci/
-├── crypto.cpp        # Scratch C++ implementation + Verification & Timing Engine + CLI & Menu
-├── predefined.hpp    # Reference implementation using boost::multiprecision::cpp_int
-├── index.html        # Standalone client-side calculator UI with test runner (no server needed)
-├── README.md         # Full documentation & viva guide
-└── .gitignore        # Ignores build artifacts and compiled executables
-```
+👉 [https://ujjwal092003.github.io/calci/](https://ujjwal092003.github.io/calci/)
 
 ---
 
-## 2. Implemented Operations (12 Operations)
+## Features
 
-| # | Operation | Description & Mathematical Convention |
-| :---: | :--- | :--- |
-| **1** | **Addition (`+`)** | Column-by-column addition with carry; full support for negative operands. |
-| **2** | **Subtraction (`-`)** | Column-by-column subtraction with borrow; full support for negative operands. |
-| **3** | **Multiplication (`*`)** | Grade-school cross-product multiplication with sign handling. |
-| **4** | **Division (`/`)** | Truncated integer division: $a = b \cdot q + r$, with quotient sign $(negA \oplus negB)$. |
-| **5** | **Modulo (`%`)** | Truncated remainder matching the sign of dividend $a$. |
-| **6** | **Euclidean GCD** | Non-negative greatest common divisor: $\gcd(a, b) = \gcd(\|a\|, \|b\|) \ge 0$. |
-| **7** | **Extended Euclidean GCD** | Computes $\gcd(a, b)$ and signed $x, y \in \mathbb{Z}$ satisfying $a \cdot x + b \cdot y = \gcd(a, b)$. |
-| **8** | **Modular Addition** | $((a_{\text{norm}} + b_{\text{norm}}) \pmod M)$, with $M = \|m\|$ and result in $[0, M-1]$. |
-| **9** | **Modular Multiplication** | $((a_{\text{norm}} \times b_{\text{norm}}) \pmod M)$, with $M = \|m\|$ and result in $[0, M-1]$. |
-| **10** | **Modular Inverse** | Finds $a^{-1} \pmod m$ using Extended GCD. Returns failure if $\gcd(a, m) \neq 1$. |
-| **11** | **Naive Modular Power** | Computes $a^{\text{exp}} \pmod M$ via repeated multiplication (for complexity comparison). |
-| **12** | **Square-and-Multiply** | Binary repeated squaring $O(\log \text{exp})$ handling arbitrary 512-bit exponents. |
+The calculator implements 12 core arithmetic and cryptographic operations:
 
----
-
-## 3. Mathematical Conventions (Viva Preparation)
-
-### Negative Number Handling
-* **GCD**: Follows the universal standard $\gcd(a, b) = \gcd(\|a\|, \|b\|) \ge 0$.
-* **Extended GCD**: Signed inputs $a$ and $b$ are adjusted so that the Bézout identity $a \cdot x + b \cdot y = \gcd(a, b)$ strictly holds true.
-
-### Negative Modulus Normalization
-* For all modular operations, the modulus is normalized to $M = \|m\|$.
-* Any remainder is normalized into the standard range:
-  $$r = a \pmod M, \quad \text{if } r < 0 \implies r = r + M \implies 0 \le r < M$$
-* Examples:
-  * $\text{modAdd}(-17, 3, -5) \implies M = 5, (-17 \equiv 3 \pmod 5) \implies (3 + 3) \pmod 5 = 1$.
-  * $\text{modInverse}(-3, -11) \implies M = 11, (-3 \equiv 8 \pmod{11}) \implies 8^{-1} \equiv 7 \pmod{11}$ (since $8 \times 7 = 56 = 5(11) + 1$).
-
-### Modular Exponentiation
-* **Square-and-Multiply**: The exponent is processed bit-by-bit from LSB to MSB using custom string division by 2.
-* Intermediate multiplications are reduced modulo $M$ at each step, preventing values from growing beyond $M^2$.
+1. **Addition (`+`)**: Arbitrary-precision column addition with carry and signed operand decomposition.
+2. **Subtraction (`-`)**: Digit-by-digit magnitude borrow subtraction supporting signed numbers.
+3. **Multiplication (`*`)**: Grade-school cross-product multiplication with carry propagation.
+4. **Division (`/`)**: Truncated long division using a shift-and-subtract quotient estimation approach.
+5. **Modulo (`%`)**: Canonical integer remainder reduction.
+6. **Euclidean GCD**: Greatest common divisor computed using the iterative Euclidean algorithm ($\gcd(a, b) = \gcd(|a|, |b|) \ge 0$).
+7. **Extended Euclidean GCD**: Computes $\gcd(a, b)$ and integer Bézout coefficients $(x, y)$ such that $a \cdot x + b \cdot y = \gcd(a, b)$ for all signed inputs.
+8. **Modular Addition**: Canonical addition $((a \bmod M) + (b \bmod M)) \bmod M$ with modulus normalization.
+9. **Modular Multiplication**: Canonical multiplication $((a \bmod M) \cdot (b \bmod M)) \bmod M$.
+10. **Modular Multiplicative Inverse**: Computes $a^{-1} \pmod m$ using the Extended Euclidean algorithm. Detects non-coprime cases when $\gcd(a, m) \neq 1$.
+11. **Naive Modular Exponentiation**: Direct repeated multiplication $a^{\text{exp}} \pmod M$ (intended for small exponents and complexity comparison).
+12. **Square-and-Multiply Exponentiation**: Binary repeated squaring $O(\log \text{exp})$ handling arbitrary 512-bit exponents.
 
 ---
 
-## 4. Compilation & Execution (Linux / Unix / macOS / Windows)
+## Implementation
 
-### Prerequisites
-* Standard C++ compiler supporting C++14 or C++17 (`g++ -std=c++14` or `-std=c++17`).
-* `boost/multiprecision/cpp_int.hpp` (for `predefined.hpp` reference verification).
+The project maintains two distinct implementations:
 
-### Compilation:
+* **Manual Scratch Implementation (`crypto.cpp`)**:
+  - Implements all arithmetic operations from scratch using `std::string` for dynamic base-10 digit storage.
+  - Zero external big-integer library dependencies.
+  - No fixed 64-bit or 512-bit integer length limitations.
+* **Predefined Reference Implementation (`predefined.hpp`)**:
+  - Uses `boost::multiprecision::cpp_int` from the Boost C++ Libraries.
+  - Acts as an authoritative ground-truth reference for mathematical verification and performance comparisons.
+
+---
+
+## Verification
+
+The automated verification suite executes **72 automated test cases** (12 operations $\times$ 6 test categories):
+
+* **Categories Evaluated**:
+  1. Small numbers
+  2. Numbers of different lengths
+  3. Large numbers (~40 digits / 128-bit)
+  4. 512-bit integers (~155 digits)
+  5. Negative numbers and negative moduli
+  6. Edge cases (zeros, identical values, non-coprime inputs)
+
+### Correctness Comparison
+Every test case compares the output of the **Scratch implementation** against the **Boost `cpp_int` reference implementation**:
+* Arithmetic and modular operations must produce identical string representations.
+* Extended GCD is verified by checking the GCD match and independently testing the Bézout identity: $a \cdot x + b \cdot y == \gcd(a, b)$.
+* Modular Inverse is verified by confirming $(a \cdot x) \bmod M == 1$ when an inverse exists, or verifying error detection when $\gcd(a, m) \neq 1$.
+
+### Performance Measurement
+For every test case, execution times are measured independently using `std::chrono::high_resolution_clock`:
+* **Scratch execution time** is measured separately around the manual function call.
+* **Predefined execution time** is measured separately around the Boost reference call.
+* Timers isolate the calculation logic and exclude I/O, parsing, and console printing.
+
+---
+
+## Negative Number and Modulus Handling
+
+* **Negative Operands**: Inputs are parsed into a sign flag and an absolute magnitude string. All basic operations decompose into magnitude arithmetic with proper sign assignment.
+* **Bézout Identity for Extended GCD**: When input $a < 0$, the coefficient $x$ is negated ($x = -x_{abs}$), and similarly for $y$ when $b < 0$. This ensures $a \cdot x + b \cdot y = \gcd(a, b)$ holds strictly for all signed inputs.
+* **Negative Modulus Normalization**: Modular arithmetic normalizes any modulus $m$ to its absolute value $M = |m|$. Remainder results are always mapped into the standard canonical non-negative range $r \in [0, M - 1]$ by applying $r = (r \bmod M + M) \bmod M$.
+
+---
+
+## How to Compile
+
+A standard C++ compiler supporting C++14 or C++17 (such as `g++`) is required along with Boost headers.
+
 ```bash
 g++ -std=c++14 -O2 crypto.cpp -o crypto
 ```
 
-### Running the Interactive Menu:
+---
+
+## How to Run
+
+### Interactive Terminal Mode
 ```bash
 ./crypto
 ```
 
-### Running the Automated 72-Test Verification Suite:
+### Automated 72-Test Verification Suite
 ```bash
 ./crypto test
 ```
 
-### Running Direct CLI Commands:
+### Direct CLI Commands
 ```bash
-./crypto add 12 5
-./crypto sub 100 37
+# Basic Arithmetic
+./crypto add 12345678901234567890 98765432109876543210
+./crypto sub 100000000000 1
 ./crypto mul 123456789 987654321
 ./crypto div 100 7
+
+# Number Theory
 ./crypto gcd 48 -18
 ./crypto extgcd -30 12
+
+# Modular Arithmetic & Exponentiation
 ./crypto modadd -17 3 -5
 ./crypto modmul -12 -5 7
 ./crypto modinv 3 11
-./crypto modpow 2 10 1000
+./crypto modpow 2 1000 1000000007
+
+# 512-bit Random Number Generator
 ./crypto rand512
 ```
 
 ---
 
-## 5. Automated Verification & Timing Summary
-
-Running `./crypto test` executes **6 meaningful test cases across all 12 operations (72 total tests)** comparing the Scratch engine vs. Boost reference:
+## Project Structure
 
 ```text
-====================================================
-                 VERIFICATION SUMMARY
-====================================================
-
-Addition                    6/6 PASS
-Subtraction                 6/6 PASS
-Multiplication              6/6 PASS
-Division                    6/6 PASS
-Modulo                      6/6 PASS
-GCD                         6/6 PASS
-Extended GCD                6/6 PASS
-Modular Addition            6/6 PASS
-Modular Multiplication      6/6 PASS
-Modular Inverse             6/6 PASS
-Naive Modular Power         6/6 PASS
-Square-and-Multiply         6/6 PASS
-
-----------------------------------------------------
-Overall: PASS (72/72 tests passed)
-====================================================
+calci/
+├── crypto.cpp        # Manual scratch implementation, test runner, CLI, and interactive terminal menu
+├── predefined.hpp    # Reference implementation wrapping boost::multiprecision::cpp_int
+├── index.html        # Standalone web calculator UI and verification runner
+└── README.md         # Project documentation and usage guide
 ```
 
-* **Timing**: Measured separately using `std::chrono::high_resolution_clock` directly around the operation calls.
-* **Extended GCD Verification**: Verifies both $\gcd$ and Bézout's identity $a \cdot x + b \cdot y == \gcd(a, b)$.
-* **Modular Inverse Verification**: Verifies $(a \cdot \text{inv}) \pmod M == 1$ and handles non-coprime cases.
+---
+
+## License / Notes
+
+Academic project developed for Cryptography Laboratory (CS800). Distributed for educational and evaluation purposes.
